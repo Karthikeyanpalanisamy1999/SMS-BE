@@ -27,7 +27,7 @@ const studentrecordSchema = new Schema({
         type:String,
         required:true
     },
-    address:Schema.Types.Mixed,
+    address:String,
     lastUpdate:{
         type:Date,
         default:Date.now

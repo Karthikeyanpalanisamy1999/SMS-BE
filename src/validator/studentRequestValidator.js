@@ -19,7 +19,7 @@ class StudentRequestValidator {
             studentEmail: Joi.string().email().required().messages({
                 'string.email': 'Invalid Email Format'
             }),
-            address: Joi.object().required().messages({
+            address: Joi.string().required().messages({
                'any.required': 'Address is required' 
             })
         });
