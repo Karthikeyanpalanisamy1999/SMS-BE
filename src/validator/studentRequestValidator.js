@@ -3,6 +3,9 @@ const Joi = require('joi');
 class StudentRequestValidator {
     static validateStudentSaveRequest(requestBody) {
         const schema = Joi.object({
+            rollNo: Joi.string().required().messages({
+                'any.required': 'Rollno is required'
+            }),
             studentName: Joi.string().required().messages({
                 'any.required': 'StudentName is required'
             }),
@@ -13,7 +16,7 @@ class StudentRequestValidator {
                 'any.required': 'ParentMobile1 is required',
                 'string.pattern.base': 'Mobile number must be a 10-digit number'
             }),
-            parentMobile2: Joi.string().pattern(/^\d{10}$/).allow('').optional().messages({
+            parentMobile2: Joi.string().pattern(/^\d{10}$/).optional().messages({
                 'string.pattern.base': 'Mobile number must be a 10-digit number'
             }),
             studentEmail: Joi.string().email().required().messages({
