@@ -10,6 +10,7 @@ const saveStudentRecord = async(req,res)=>{
   try
     {
         const requestBody = get(req,'body')
+        const rollNo = get(requestBody,'rollNo')
         const studentName = get(requestBody,'studentName')
         const department = get(requestBody,'department')
         const parentMobile1 = get(requestBody,'parentMobile1')
@@ -36,6 +37,7 @@ const saveStudentRecord = async(req,res)=>{
         })
 
         const existingStudentRecord = await StudentRecord.findOne({
+            rollNo:rollNo,
             studentName:studentName,
             department:department,
             parentMobile1:parentMobile1,
@@ -47,6 +49,7 @@ const saveStudentRecord = async(req,res)=>{
         if(!existingStudentRecord)
             {
                 const studentrecord = new StudentRecord({
+                    rollNo:rollNo,
                     studentName:studentName,
                     department:department,
                     parentMobile1:parentMobile1,
@@ -95,6 +98,64 @@ const saveStudentRecord = async(req,res)=>{
     }
 }
 
+const getStudentByRollNo = async(req,res)=>{
+    try{
+          const rollNo = get(req,'params.rollNo')  
+        
+          if(!rollNo)
+          {
+            throw new BadRequestError(
+                'RollNo is requires',
+                STATUS_CODE.BAD_REQUEST
+            )
+          }
+          //connect mongoDB using configfile
+          await mongoose.connect(config.mongoDbUri,{
+            useNewUrlParser:true,
+            useUnifiedTopology:true
+          })
+          //find student by rollNo
+          const Student = await StudentRecord.findOne({
+            rollNo
+          })
+          if(!Student)
+          {
+            throw new BadRequestError(
+                'Student Not Found',
+                STATUS_CODE.BAD_REQUEST
+            )
+          }
+          return res.status(STATUS_CODE.OK).json({
+            message:'Student Found Successfully',
+            data:{
+               Student 
+            }
+          })
+    }
+    catch(error) {
+            if(error instanceof BadRequestError)
+            {
+                return res.status(STATUS_CODE.BAD_REQUEST).json({
+                    message:error.message,
+                    errors:error.errors
+                })
+            }
+            //send error response
+            console.error(error)
+
+            res.status(STATUS_CODE.INTERNEL_SERVER_ERROR).json({
+                message:"Internal server error"
+            })
+    }
+
+    finally{
+        //close mongoose connection
+        mongoose.connection.close()
+    }
+
+}
+
 module.exports = {
-    saveStudentRecord
+    saveStudentRecord,
+    getStudentByRollNo
 }
