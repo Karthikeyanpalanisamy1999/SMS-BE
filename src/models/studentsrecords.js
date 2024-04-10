@@ -3,10 +3,15 @@ const {
     connectToMongoDB,
     generateCustomIDs,
 } = require('./customIdGenerator') 
+const { required } = require('joi')
 
 const Schema =  mongoose.Schema
 
 const studentrecordSchema = new Schema({
+    rollNo:{
+        type:String,
+        required:true
+    },
     studentName:{
         type:String,
         required:true
