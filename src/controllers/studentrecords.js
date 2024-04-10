@@ -147,6 +147,7 @@ const getStudentByRollNo = async(req,res)=>{
                 message:"Internal server error"
             })
     }
+    
 
     finally{
         //close mongoose connection
@@ -154,8 +155,79 @@ const getStudentByRollNo = async(req,res)=>{
     }
 
 }
+const updateStudentRecord = async (req, res) => {
+    try {
+        const rollNo = get(req, 'params.rollNo');
+        const requestBody = get(req, 'body');
+        
+        if (!rollNo) {
+            throw new BadRequestError(
+                'RollNo is required',
+                STATUS_CODE.BAD_REQUEST
+            );
+        }
+
+        if (!requestBody) {
+            throw new BadRequestError(
+                'Request body is required for updating student details',
+                STATUS_CODE.BAD_REQUEST
+            );
+        }
+
+        // Validation for request body
+        const validationErrors = StudentRequestValidator.validateStudentSaveRequest(requestBody);
+        if (Array.isArray(validationErrors) && validationErrors.length > 0) {
+            throw new BadRequestError(
+                'Validation Failed',
+                STATUS_CODE.BAD_REQUEST,
+                validationErrors
+            );
+        }
+
+        // Connect to MongoDB using config file
+        await mongoose.connect(config.mongoDbUri, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+
+        // Find student by rollNo
+        const existingStudentRecord = await StudentRecord.findOne({ rollNo });
+
+        if (!existingStudentRecord) {
+            throw new BadRequestError(
+                'Student Not Found',
+                STATUS_CODE.BAD_REQUEST
+            );
+        }
+
+        // Update student details
+        existingStudentRecord.set(requestBody);
+        existingStudentRecord.lastupdate = new Date();
+        await existingStudentRecord.save();
+
+        res.status(STATUS_CODE.OK).json({
+            message: 'Student Record updated successfully'
+        });
+    } catch (error) {
+        if (error instanceof BadRequestError) {
+            return res.status(STATUS_CODE.BAD_REQUEST).json({
+                message: error.message,
+                errors: error.errors
+            });
+        }
+        
+        console.error(error);
+        res.status(STATUS_CODE.INTERNAL_SERVER_ERROR).json({
+            message: 'Internal server error'
+        });
+    } finally {
+        // Close mongoose connection
+        mongoose.connection.close();
+    }
+};
 
 module.exports = {
     saveStudentRecord,
-    getStudentByRollNo
+    getStudentByRollNo,
+    updateStudentRecord,
 }
